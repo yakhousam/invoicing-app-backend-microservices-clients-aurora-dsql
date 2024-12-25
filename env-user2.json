@@ -1,0 +1,12 @@
+{
+  "getAllClientsFunction": {
+    "ENDPOINT_OVERRIDE": "http://172.17.0.2:8000",
+    "TABLE_NAME": "clients",
+    "userId": "22222222222222"
+  },
+  "postClientFunction": {
+    "ENDPOINT_OVERRIDE": "http://172.17.0.2:8000",
+    "TABLE_NAME": "clients",
+    "userId": "22222222222222"
+  }
+}

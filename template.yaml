@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: clients-microservice
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 100
+    MemorySize: 128
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref Table
+        ENDPOINT_OVERRIDE: ''
+        userId: ''
+
+Resources:
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: clients
+      AttributeDefinitions:
+        - AttributeType: S
+          AttributeName: userId
+        - AttributeType: S
+          AttributeName: clientId
+        - AttributeType: S
+          AttributeName: clientName
+        - AttributeType: S
+          AttributeName: email
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: clientId
+          KeyType: RANGE
+      LocalSecondaryIndexes:
+        - IndexName: clientNameIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: clientName
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: emailIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: email
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+
+  postClientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: nodejs
+      Handler: postClient.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref Table
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - functions/postClient.ts
+
+  getAllClientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: nodejs
+      Handler: getAllClients.handler
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref Table
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - functions/getAllClients.ts
+
+  getClientByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: nodejs
+      Handler: getClientById.handler
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /{clientId}
+            Method: GET
+
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref Table
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - functions/getClientById.ts
