@@ -3,22 +3,50 @@ import {
   type APIGatewayProxyResult
 } from 'aws-lambda'
 
-import { postClientController } from '../src/controllers/postClients'
+import middy from '@middy/core'
+import httpErrorHandlerMiddleware from '@middy/http-error-handler'
+import httpContentEncodingMiddleware from '@middy/http-content-encoding'
+import httpCorsMiddleware from '@middy/http-cors'
+import httpEventNormalizerMiddleware from '@middy/http-event-normalizer'
+import httpHeaderNormalizerMiddleware from '@middy/http-header-normalizer'
+import httpJsonBodyParserMiddleware from '@middy/http-json-body-parser'
+import httpSecurityHeadersMiddleware from '@middy/http-security-headers'
+import postClientController from '../src/controllers/postClients'
+import clientNameDuplicationValidator from '../src/custom-middlewares/clientNameDuplicationValidator'
+import emailDuplicationValidator from '../src/custom-middlewares/emailDuplicationValidator'
+import validatePostClientBody from '../src/custom-middlewares/validatePostClientBody'
+import validateUserMiddleware from '../src/custom-middlewares/validateUser'
+import errorLogger from '@middy/error-logger'
 
-export const handler = async (
+const postClientHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  try {
-    return await postClientController(event)
-  } catch (err: unknown) {
-    console.error('postClient error: ', err)
+  return await postClientController(event)
+}
 
+export const handler = middy({
+  timeoutEarlyResponse: () => {
     return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ error: 'Internal Server Error' })
+      statusCode: 408
     }
   }
-}
+})
+  .use(httpEventNormalizerMiddleware())
+  .use(httpHeaderNormalizerMiddleware())
+  .use(httpJsonBodyParserMiddleware())
+  .use(httpSecurityHeadersMiddleware())
+  .use(
+    httpCorsMiddleware({
+      origin: '*',
+      credentials: true,
+      methods: 'POST'
+    })
+  )
+  .use(httpContentEncodingMiddleware())
+  .use(validateUserMiddleware())
+  .use(validatePostClientBody())
+  .use(emailDuplicationValidator())
+  .use(clientNameDuplicationValidator())
+  .use(httpErrorHandlerMiddleware())
+  .use(errorLogger())
+  .handler(postClientHandler)
