@@ -4,13 +4,13 @@ import { ddbDocClient, tableName } from '../db/client'
 import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 import createError from 'http-errors'
 
-const emailDuplicationValidator = (): middy.MiddlewareObj<
+const emailDuplicationMiddleware = (): middy.MiddlewareObj<
   APIGatewayProxyEvent,
   APIGatewayProxyResult
 > => {
   return {
     before: async (request): Promise<void> => {
-      const email = JSON.parse(request.event.body || '{}').email
+      const email = JSON.parse(request.event.body!).email // we are sure that body is not null because we are using httpJsonBodyParserMiddleware and validatePostClientBodyMiddleware  middlewares
       if (!email) {
         return
       }
@@ -32,4 +32,4 @@ const emailDuplicationValidator = (): middy.MiddlewareObj<
   }
 }
 
-export default emailDuplicationValidator
+export default emailDuplicationMiddleware

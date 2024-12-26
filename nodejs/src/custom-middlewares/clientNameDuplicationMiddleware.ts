@@ -4,14 +4,14 @@ import { ddbDocClient, tableName } from '../db/client'
 import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 import createError from 'http-errors'
 
-const clientNameDuplicationValidator = (): middy.MiddlewareObj<
+const clientNameDuplicationMiddleware = (): middy.MiddlewareObj<
   APIGatewayProxyEvent,
   APIGatewayProxyResult
 > => {
   return {
     before: async (request): Promise<void> => {
       const userId = request.event.requestContext.authorizer?.claims.sub
-      const clientName = JSON.parse(request.event.body || '{}').clientName
+      const clientName = JSON.parse(request.event.body!).clientName // we are sure that body is not null because we are using httpJsonBodyParserMiddleware and validatePostClientBodyMiddleware  middlewares
       const command = new QueryCommand({
         TableName: tableName,
         IndexName: 'clientNameIndex',
@@ -29,4 +29,4 @@ const clientNameDuplicationValidator = (): middy.MiddlewareObj<
   }
 }
 
-export default clientNameDuplicationValidator
+export default clientNameDuplicationMiddleware

@@ -2,7 +2,7 @@ import middy from '@middy/core'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import createError from 'http-errors'
 
-const validateUserMiddleware = (): middy.MiddlewareObj<
+const authorizeUserMiddleware = (): middy.MiddlewareObj<
   APIGatewayProxyEvent,
   APIGatewayProxyResult
 > => {
@@ -21,4 +21,4 @@ const validateUserMiddleware = (): middy.MiddlewareObj<
   }
 }
 
-export default validateUserMiddleware
+export default authorizeUserMiddleware

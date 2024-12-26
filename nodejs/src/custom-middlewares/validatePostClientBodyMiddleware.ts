@@ -4,7 +4,7 @@ import { Client, createClientSchema } from '../validation'
 import { ZodError } from 'zod'
 import createError from 'http-errors'
 
-const validatePostClientBody = (): middy.MiddlewareObj<
+const validatePostClientBodyMiddleware = (): middy.MiddlewareObj<
   APIGatewayProxyEvent,
   APIGatewayProxyResult
 > => {
@@ -34,4 +34,4 @@ const validatePostClientBody = (): middy.MiddlewareObj<
   }
 }
 
-export default validatePostClientBody
+export default validatePostClientBodyMiddleware
