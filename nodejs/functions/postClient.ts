@@ -4,19 +4,20 @@ import {
 } from 'aws-lambda'
 
 import middy from '@middy/core'
-import httpErrorHandlerMiddleware from '@middy/http-error-handler'
 import httpContentEncodingMiddleware from '@middy/http-content-encoding'
 import httpCorsMiddleware from '@middy/http-cors'
+import httpErrorHandlerMiddleware from '@middy/http-error-handler'
 import httpEventNormalizerMiddleware from '@middy/http-event-normalizer'
 import httpHeaderNormalizerMiddleware from '@middy/http-header-normalizer'
 import httpJsonBodyParserMiddleware from '@middy/http-json-body-parser'
 import httpSecurityHeadersMiddleware from '@middy/http-security-headers'
-import postClientController from '../src/controllers/postClients'
-import clientNameDuplicationValidator from '../src/custom-middlewares/clientNameDuplicationValidator'
-import emailDuplicationValidator from '../src/custom-middlewares/emailDuplicationValidator'
-import validatePostClientBody from '../src/custom-middlewares/validatePostClientBody'
-import validateUserMiddleware from '../src/custom-middlewares/validateUser'
 import errorLogger from '@middy/error-logger'
+
+import postClientController from '../src/controllers/postClientController'
+import clientNameDuplicationMiddleware from '../src/custom-middlewares/clientNameDuplicationMiddleware'
+import emailDuplicationMiddleware from '../src/custom-middlewares/emailDuplicationMiddleware'
+import validatePostClientBodyMiddleware from '../src/custom-middlewares/validatePostClientBodyMiddleware'
+import authorizeUserMiddleware from '../src/custom-middlewares/authorizeUserMiddleware'
 
 const postClientHandler = async (
   event: APIGatewayProxyEvent
@@ -43,10 +44,10 @@ export const handler = middy({
     })
   )
   .use(httpContentEncodingMiddleware())
-  .use(validateUserMiddleware())
-  .use(validatePostClientBody())
-  .use(emailDuplicationValidator())
-  .use(clientNameDuplicationValidator())
+  .use(authorizeUserMiddleware())
+  .use(validatePostClientBodyMiddleware())
+  .use(emailDuplicationMiddleware())
+  .use(clientNameDuplicationMiddleware())
   .use(httpErrorHandlerMiddleware())
   .use(errorLogger())
   .handler(postClientHandler)
