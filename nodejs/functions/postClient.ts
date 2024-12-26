@@ -5,7 +5,6 @@ import {
 
 import middy from '@middy/core'
 import httpContentEncodingMiddleware from '@middy/http-content-encoding'
-import httpCorsMiddleware from '@middy/http-cors'
 import httpErrorHandlerMiddleware from '@middy/http-error-handler'
 import httpEventNormalizerMiddleware from '@middy/http-event-normalizer'
 import httpHeaderNormalizerMiddleware from '@middy/http-header-normalizer'
@@ -36,13 +35,6 @@ export const handler = middy({
   .use(httpHeaderNormalizerMiddleware())
   .use(httpJsonBodyParserMiddleware())
   .use(httpSecurityHeadersMiddleware())
-  .use(
-    httpCorsMiddleware({
-      origin: '*',
-      credentials: true,
-      methods: 'POST'
-    })
-  )
   .use(httpContentEncodingMiddleware())
   .use(authorizeUserMiddleware())
   .use(validatePostClientBodyMiddleware())
