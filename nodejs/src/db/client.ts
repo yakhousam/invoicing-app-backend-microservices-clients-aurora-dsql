@@ -13,6 +13,6 @@ if (ENDPOINT_OVERRIDE) {
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient)
 
 // Get the DynamoDB table name from environment variables
-const tableName = process.env.TABLE_NAME
+const tableName = process.env.TABLE_NAME || 'clients'
 
 export { ddbDocClient, tableName }
