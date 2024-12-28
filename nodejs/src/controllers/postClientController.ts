@@ -1,9 +1,9 @@
+import { ddbDocClient, tableName } from '@/db/client'
 import { PutCommand } from '@aws-sdk/lib-dynamodb'
 import {
   type APIGatewayProxyEvent,
   type APIGatewayProxyResult
 } from 'aws-lambda'
-import { ddbDocClient, tableName } from '../db/client'
 
 const postClientController = async (
   event: APIGatewayProxyEvent

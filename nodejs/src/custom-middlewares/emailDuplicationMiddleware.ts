@@ -1,7 +1,7 @@
+import { ddbDocClient, tableName } from '@/db/client'
+import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 import middy from '@middy/core'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import { ddbDocClient, tableName } from '../db/client'
-import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 import createError from 'http-errors'
 
 const emailDuplicationMiddleware = (): middy.MiddlewareObj<
