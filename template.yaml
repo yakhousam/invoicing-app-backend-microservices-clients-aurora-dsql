@@ -2,6 +2,14 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: clients-microservice
 
+Parameters:
+  UserPoolId:
+    Type: String
+    Description: User Pool ID for cognito provider
+  Audience:
+    Type: String
+    Description: Client ID for user pool
+
 Globals:
   Function:
     Runtime: nodejs20.x
@@ -16,8 +24,33 @@ Globals:
         userId: ''
 
 Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Auth:
+        DefaultAuthorizer: GeneralAuth
+        Authorizers:
+          GeneralAuth:
+            IdentitySource: '$request.header.Authorization'
+            JwtConfiguration:
+              audience:
+                - !Ref Audience
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowOrigins:
+          - 'http://localhost:5173'
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+
   Table:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       TableName: clients
       AttributeDefinitions:
@@ -53,7 +86,7 @@ Resources:
             ProjectionType: ALL
 
       BillingMode: PAY_PER_REQUEST
-      DeletionProtectionEnabled: true
+      DeletionProtectionEnabled: false
 
   postClientFunction:
     Type: AWS::Serverless::Function
@@ -61,14 +94,15 @@ Resources:
       CodeUri: nodejs
       Handler: postClient.handler
       Policies:
-        - DynamoDBWritePolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref Table
       Events:
-        HelloWorld:
-          Type: Api
+        RootGet:
+          Type: HttpApi
           Properties:
             Path: /
             Method: POST
+            ApiId: !Ref HttpApi
 
     Metadata:
       BuildMethod: esbuild
@@ -84,16 +118,17 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: getAllClients.handler
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /
-            Method: GET
-
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref Table
+      Events:
+        RootGet:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: GET
+            ApiId: !Ref HttpApi
+
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -108,16 +143,17 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: getClientById.handler
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /{clientId}
-            Method: GET
-
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref Table
+      Events:
+        RootGet:
+          Type: HttpApi
+          Properties:
+            Path: /{clientId}
+            Method: GET
+            ApiId: !Ref HttpApi
+
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
