@@ -14,7 +14,7 @@ const emailDuplicationMiddleware = (): middy.MiddlewareObj<
       if (!email) {
         return
       }
-      const userId = request.event.requestContext.authorizer?.claims.sub
+      const userId = request.event.requestContext.authorizer?.jwt.claims.sub
       const command = new QueryCommand({
         TableName: tableName,
         IndexName: 'emailIndex',

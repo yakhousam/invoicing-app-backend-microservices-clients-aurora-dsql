@@ -11,7 +11,7 @@ const validatePostClientBodyMiddleware = (): middy.MiddlewareObj<
   return {
     before: async (request): Promise<void> => {
       try {
-        const userId = request.event.requestContext.authorizer?.claims
+        const userId = request.event.requestContext.authorizer?.jwt.claims
           .sub as string
 
         const validClient = createClientSchema.parse(request.event.body)
