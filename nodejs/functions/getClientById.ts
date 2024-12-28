@@ -3,22 +3,36 @@ import {
   type APIGatewayProxyResult
 } from 'aws-lambda'
 
-import { getClientByIdController } from '../src/controllers/getClientById'
+import middy from '@middy/core'
+import errorLogger from '@middy/error-logger'
+import httpContentEncodingMiddleware from '@middy/http-content-encoding'
+import httpErrorHandlerMiddleware from '@middy/http-error-handler'
+import httpEventNormalizerMiddleware from '@middy/http-event-normalizer'
+import httpHeaderNormalizerMiddleware from '@middy/http-header-normalizer'
+import httpSecurityHeadersMiddleware from '@middy/http-security-headers'
 
-export const handler = async (
+import authorizeUserMiddleware from '@/custom-middlewares/authorizeUserMiddleware'
+
+import getClientByIdController from '@/controllers/getClientByIdController'
+
+const getClientByIdHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  try {
-    return await getClientByIdController(event)
-  } catch (err: unknown) {
-    console.error('postClient error: ', err)
+  return await getClientByIdController(event)
+}
 
+export const handler = middy({
+  timeoutEarlyResponse: () => {
     return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ error: 'Internal Server Error' })
+      statusCode: 408
     }
   }
-}
+})
+  .use(httpEventNormalizerMiddleware())
+  .use(httpHeaderNormalizerMiddleware())
+  .use(httpSecurityHeadersMiddleware())
+  .use(httpContentEncodingMiddleware())
+  .use(httpErrorHandlerMiddleware())
+  .use(authorizeUserMiddleware())
+  .use(errorLogger())
+  .handler(getClientByIdHandler)
