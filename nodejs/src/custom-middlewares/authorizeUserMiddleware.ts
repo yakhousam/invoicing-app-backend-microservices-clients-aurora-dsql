@@ -10,11 +10,11 @@ const authorizeUserMiddleware = (): middy.MiddlewareObj<
     before: async (request): Promise<void> => {
       const userId = process.env.userId
         ? process.env.userId
-        : request.event.requestContext.authorizer?.jwt.claims.sub
+        : request.event.requestContext.authorizer?.jwt?.claims?.sub
       if (userId === undefined) {
         throw new createError.Unauthorized()
       }
-      if (!request.event.requestContext.authorizer?.jwt.claims.sub) {
+      if (!request.event.requestContext.authorizer?.jwt?.claims?.sub) {
         // it means  that userId is coming from the environment variable (local development)
         request.event.requestContext.authorizer = {
           jwt: { claims: { sub: userId } }
