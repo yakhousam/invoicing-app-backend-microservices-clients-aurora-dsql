@@ -29,39 +29,6 @@ export const updateClientSchema = clientSchema.omit({
   updatedAt: true
 })
 
-export const getAllClientsQuerySchema = z.object({
-  limit: z
-    .union([
-      z.string().refine(
-        (val) => {
-          const num = parseInt(val, 10)
-          return !isNaN(num) && num > 0
-        },
-        { message: 'Limit must be an integer greater than 0' }
-      ),
-      z.undefined()
-    ])
-    .default('10'),
-  lastEvaluatedKey: z.union([
-    z.string().refine(
-      (val) => {
-        try {
-          const parsed = JSON.parse(val)
-          return (
-            typeof parsed === 'object' &&
-            parsed !== null &&
-            'clientId' in parsed
-          )
-        } catch {
-          return false
-        }
-      },
-      { message: 'Invalid JSON format for lastEvaluatedKey' }
-    ),
-    z.undefined()
-  ])
-})
-
 export type Client = z.infer<typeof clientSchema>
 
 export type CreateClient = z.infer<typeof createClientSchema>
