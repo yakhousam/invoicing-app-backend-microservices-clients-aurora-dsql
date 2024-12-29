@@ -1,6 +1,7 @@
 import { ddbDocClient, tableName } from '@/db/client'
 import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import createError from 'http-errors'
 
 const getAllClientsController = async (
   event: APIGatewayProxyEvent
@@ -25,6 +26,10 @@ const getAllClientsController = async (
     }
     lastEvaluatedKey = data.LastEvaluatedKey
   } while (lastEvaluatedKey)
+
+  if (clients.length === 0) {
+    throw new createError.NotFound('No clients found')
+  }
 
   const response = {
     clients,
