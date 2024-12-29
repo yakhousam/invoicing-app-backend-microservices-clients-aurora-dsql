@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { Client } from '../validation'
+import { Client, CreateClient } from '../validation'
 
 export function generateClients(num: number): Client[] {
   return Array(num)
@@ -18,4 +18,19 @@ export function generateClients(num: number): Client[] {
         VATNumber: faker.string.uuid()
       }
     })
+}
+
+export function generatePostClient(): CreateClient {
+  return {
+    clientName: faker.company.name(),
+    email: faker.internet.email(),
+    currencyPreference: faker.finance.currencyCode(),
+    address: faker.location.streetAddress(),
+    phone: faker.phone.number(),
+    VATNumber: faker.string.uuid()
+  }
+}
+
+export function generateUserId(): string {
+  return faker.string.uuid()
 }
