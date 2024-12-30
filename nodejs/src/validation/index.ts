@@ -22,12 +22,16 @@ export const createClientSchema = clientSchema.omit({
 
 export const clientArraySchema = z.array(clientSchema)
 
-export const updateClientSchema = clientSchema.omit({
-  clientId: true,
-  userId: true,
-  createdAt: true,
-  updatedAt: true
-})
+export const updateClientSchema = clientSchema
+  .pick({
+    clientName: true,
+    email: true,
+    phone: true,
+    address: true,
+    VATNumber: true,
+    currencyPreference: true
+  })
+  .partial()
 
 export type Client = z.infer<typeof clientSchema>
 
