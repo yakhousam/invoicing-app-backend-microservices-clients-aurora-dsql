@@ -15,13 +15,19 @@ const clientNameDuplicationMiddleware = (): middy.MiddlewareObj<
         ?.sub as string // authorizeUserMiddleware will ensure that this is not undefined
       const body = request.event.body as unknown as Partial<Client>
       const clientName = body.clientName as string
+      const clientId = request.event.pathParameters?.clientId as string
+      if (!clientName) {
+        return
+      }
       const command = new QueryCommand({
         TableName: tableName,
         IndexName: 'clientNameIndex',
         KeyConditionExpression: 'clientName = :clientName AND userId = :userId',
+        FilterExpression: clientId ? 'clientId <> :clientId' : undefined,
         ExpressionAttributeValues: {
           ':clientName': clientName,
-          ':userId': userId
+          ':userId': userId,
+          ':clientId': clientId
         }
       })
       const duplicateName = await ddbDocClient.send(command)

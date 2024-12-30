@@ -15,6 +15,7 @@ const emailDuplicationMiddleware = (): middy.MiddlewareObj<
         ?.sub as string // authorizeUserMiddleware will ensure that this is not undefined
       const body = request.event.body as unknown as Partial<Client>
       const email = body.email as string
+      const clientId = request.event.pathParameters?.clientId as string
       if (!email) {
         return
       }
@@ -22,9 +23,11 @@ const emailDuplicationMiddleware = (): middy.MiddlewareObj<
         TableName: tableName,
         IndexName: 'emailIndex',
         KeyConditionExpression: 'email = :email AND userId = :userId',
+        FilterExpression: clientId ? 'clientId <> :clientId' : undefined,
         ExpressionAttributeValues: {
           ':email': email,
-          ':userId': userId
+          ':userId': userId,
+          ':clientId': clientId
         }
       })
       const duplicateEmail = await ddbDocClient.send(command)
