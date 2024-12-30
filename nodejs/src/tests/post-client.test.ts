@@ -129,7 +129,7 @@ describe('Test postClient', () => {
     expect(result.body).toBe('Client name already exists')
   })
 
-  it.only('should return 409 if email already exists', async () => {
+  it('should return 409 if email already exists', async () => {
     const client = generatePostClient()
     const userId = generateUserId()
 
@@ -166,6 +166,19 @@ describe('Test postClient', () => {
   })
 
   describe('Validation', () => {
+    beforeEach(() => {
+      ddbMock
+        .on(QueryCommand, {
+          TableName: 'clients',
+          IndexName: 'emailIndex'
+        })
+        .resolves({ Count: 0 })
+        .on(QueryCommand, {
+          TableName: 'clients',
+          IndexName: 'clientNameIndex'
+        })
+        .resolves({ Count: 0 })
+    })
     it('should return 400 if client name is missing', async () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { clientName, ...client } = generatePostClient()
