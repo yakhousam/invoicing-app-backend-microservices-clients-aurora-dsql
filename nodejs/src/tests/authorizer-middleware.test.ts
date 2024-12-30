@@ -26,6 +26,7 @@ describe('Test authorizeUserMiddleware', () => {
   })
 
   it('should not throw an authorizer error', async () => {
+    const userId = generateUserId()
     const handler = middy()
       .use(httpErrorHandlerMiddleware())
       .use(authorizeUserMiddleware())
@@ -35,7 +36,7 @@ describe('Test authorizeUserMiddleware', () => {
         authorizer: {
           jwt: {
             claims: {
-              sub: '123'
+              sub: userId
             }
           }
         }
