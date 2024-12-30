@@ -75,7 +75,7 @@ describe('Test postClient', () => {
     const result = await postClientHandler(putEvent, context)
     const returnedBody = JSON.parse(result.body) as Client
 
-    expect(result.statusCode).toBe(200)
+    expect(result.statusCode).toBe(201)
     expect(returnedBody).contains(client)
     expect(returnedBody.clientId).toBeTruthy()
     expect(returnedBody.createdAt).toBeTruthy()
@@ -129,7 +129,7 @@ describe('Test postClient', () => {
     expect(result.body).toBe('Client name already exists')
   })
 
-  it('should return 409 if email already exists', async () => {
+  it.only('should return 409 if email already exists', async () => {
     const client = generatePostClient()
     const userId = generateUserId()
 

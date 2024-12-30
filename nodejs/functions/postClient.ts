@@ -16,7 +16,6 @@ import postClientController from '@/controllers/postClientController'
 import authorizeUserMiddleware from '@/custom-middlewares/authorizeUserMiddleware'
 import clientNameDuplicationMiddleware from '@/custom-middlewares/clientNameDuplicationMiddleware'
 import emailDuplicationMiddleware from '@/custom-middlewares/emailDuplicationMiddleware'
-import validatePostClientBodyMiddleware from '@/custom-middlewares/validatePostClientBodyMiddleware'
 
 const postClientHandler = async (
   event: APIGatewayProxyEvent
@@ -37,7 +36,6 @@ export const handler = middy({
   .use(httpSecurityHeadersMiddleware())
   .use(httpContentEncodingMiddleware())
   .use(authorizeUserMiddleware())
-  .use(validatePostClientBodyMiddleware())
   .use(emailDuplicationMiddleware())
   .use(clientNameDuplicationMiddleware())
   .use(httpErrorHandlerMiddleware())

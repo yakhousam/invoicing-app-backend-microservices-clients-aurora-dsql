@@ -1,4 +1,5 @@
 import { ddbDocClient, tableName } from '@/db/client'
+import { Client } from '@/validation'
 import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 import middy from '@middy/core'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
@@ -10,11 +11,13 @@ const emailDuplicationMiddleware = (): middy.MiddlewareObj<
 > => {
   return {
     before: async (request): Promise<void> => {
-      const email = JSON.parse(request.event.body!).email // we are sure that body is not null because we are using httpJsonBodyParserMiddleware and validatePostClientBodyMiddleware  middlewares
+      const userId = request.event.requestContext.authorizer?.jwt?.claims
+        ?.sub as string // authorizeUserMiddleware will ensure that this is not undefined
+      const body = request.event.body as unknown as Partial<Client>
+      const email = body.email as string
       if (!email) {
         return
       }
-      const userId = request.event.requestContext.authorizer?.jwt.claims.sub
       const command = new QueryCommand({
         TableName: tableName,
         IndexName: 'emailIndex',
