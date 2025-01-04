@@ -1,9 +1,0 @@
-version = 0.1
-[default.deploy.parameters]
-stack_name = "invoicing-app-clients-microservice"
-resolve_s3 = true
-s3_prefix = "invoicing-app-clients-microservice"
-region = "us-east-1"
-capabilities = "CAPABILITY_IAM"
-parameter_overrides = "UserPoolId=\"us-east-1_2waPQ40Av\" Audience=\"3nh54s3lpri0g09heph1allpjh\""
-image_repositories = []

@@ -9,7 +9,7 @@ import createError from 'http-errors'
 const getClientByIdController = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const userId = event.requestContext.authorizer?.jwt.claims.sub as string
+  const userId = event.requestContext.authorizer?.jwt?.claims?.sub as string
 
   const clientId = event.pathParameters?.clientId
 

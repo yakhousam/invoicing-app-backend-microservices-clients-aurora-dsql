@@ -6,7 +6,7 @@ import createError from 'http-errors'
 const getAllClientsController = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const userId = event.requestContext.authorizer?.jwt.claims.sub as string
+  const userId = event.requestContext.authorizer?.jwt?.claims?.sub as string
 
   let lastEvaluatedKey: Record<string, unknown> | undefined = undefined
   const clients: Record<string, unknown>[] = []
