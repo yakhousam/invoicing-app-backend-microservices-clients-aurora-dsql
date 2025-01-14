@@ -29,7 +29,7 @@ aws dynamodb create-table --table-name clients --attribute-definitions Attribute
 ```
 5. run the following commands to start the sam local api:
 ```
-sam local start-api --env-vars env.json --host 0.0.0.0 --debug
+sam local start-api --env-vars env.json --host 0.0.0.0 --port 3003 --debug
 ```
 
 6. How to scan your table for items

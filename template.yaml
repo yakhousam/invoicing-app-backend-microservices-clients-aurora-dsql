@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: clients-microservice
 
@@ -9,6 +9,10 @@ Parameters:
   Audience:
     Type: String
     Description: Client ID for user pool
+  TableName:
+    Type: String
+    Default: clients
+    Description: Name of the DynamoDB table
 
 Globals:
   Function:
@@ -19,9 +23,9 @@ Globals:
       - x86_64
     Environment:
       Variables:
-        TABLE_NAME: !Ref Table
-        ENDPOINT_OVERRIDE: ''
-        userId: ''
+        TABLE_NAME: !Ref TableName
+        ENDPOINT_OVERRIDE: ""
+        userId: ""
 
 Resources:
   HttpApi:
@@ -31,7 +35,7 @@ Resources:
         DefaultAuthorizer: GeneralAuth
         Authorizers:
           GeneralAuth:
-            IdentitySource: '$request.header.Authorization'
+            IdentitySource: "$request.header.Authorization"
             JwtConfiguration:
               audience:
                 - !Ref Audience
@@ -41,8 +45,10 @@ Resources:
           - GET
           - POST
           - OPTIONS
+          - PATCH
+          - DELETE
         AllowOrigins:
-          - 'http://localhost:5173'
+          - "http://localhost:3001"
         AllowHeaders:
           - Content-Type
           - Authorization
@@ -52,7 +58,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      TableName: clients
+      TableName: !Ref TableName
       AttributeDefinitions:
         - AttributeType: S
           AttributeName: userId
@@ -95,7 +101,7 @@ Resources:
       Handler: postClient.handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref Table
+            TableName: !Ref TableName
       Events:
         RootGet:
           Type: HttpApi
@@ -108,7 +114,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: 'es2020'
+        Target: "es2020"
         Sourcemap: true
         EntryPoints:
           - functions/postClient.ts
@@ -120,7 +126,7 @@ Resources:
       Handler: getAllClients.handler
       Policies:
         - DynamoDBWritePolicy:
-            TableName: !Ref Table
+            TableName: !Ref TableName
       Events:
         RootGet:
           Type: HttpApi
@@ -133,7 +139,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: 'es2020'
+        Target: "es2020"
         Sourcemap: true
         EntryPoints:
           - functions/getAllClients.ts
@@ -145,7 +151,7 @@ Resources:
       Handler: getClientById.handler
       Policies:
         - DynamoDBWritePolicy:
-            TableName: !Ref Table
+            TableName: !Ref TableName
       Events:
         RootGet:
           Type: HttpApi
@@ -158,7 +164,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: 'es2020'
+        Target: "es2020"
         Sourcemap: true
         EntryPoints:
           - functions/getClientById.ts
@@ -170,7 +176,7 @@ Resources:
       Handler: updateClient.handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref Table
+            TableName: !Ref TableName
       Events:
         RootGet:
           Type: HttpApi
@@ -182,7 +188,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: 'es2020'
+        Target: "es2020"
         Sourcemap: true
         EntryPoints:
           - functions/updateClient.ts
