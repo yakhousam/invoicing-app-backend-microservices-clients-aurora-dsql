@@ -1,13 +1,16 @@
 import { z } from "zod";
 
 export const clientSchema = z.object({
-  clientId: z.string(),
-  userId: z.string(),
-  clientName: z.string().min(1, { message: "Client name is required" }),
-  email: z.string().email(),
-  phone: z.union([z.string().min(10), z.literal(""), z.undefined()]),
-  address: z.string().optional(),
-  VATNumber: z.string().optional(),
+  clientId: z.string().max(100),
+  userId: z.string().max(100),
+  clientName: z
+    .string()
+    .min(1, { message: "Client name is required" })
+    .max(100),
+  email: z.string().email().max(100),
+  phone: z.union([z.string().min(10).max(20), z.literal(""), z.undefined()]),
+  address: z.string().max(255).optional(),
+  VATNumber: z.string().max(100).optional(),
   currencyPreference: z.string().optional().default("USD"),
   createdAt: z.string(),
   updatedAt: z.string(),
