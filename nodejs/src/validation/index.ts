@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const clientSchema = z.object({
-  clientId: z.string().max(100),
-  userId: z.string().max(100),
+  clientId: z.string(),
+  userId: z.string(),
   clientName: z
     .string()
     .min(1, { message: "Client name is required" })

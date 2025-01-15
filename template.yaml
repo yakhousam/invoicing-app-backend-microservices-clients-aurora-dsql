@@ -101,7 +101,7 @@ Resources:
       Handler: postClient.handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref TableName
+            TableName: !Ref Table
       Events:
         RootGet:
           Type: HttpApi
@@ -125,8 +125,8 @@ Resources:
       CodeUri: nodejs
       Handler: getAllClients.handler
       Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref TableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref Table
       Events:
         RootGet:
           Type: HttpApi
@@ -150,8 +150,8 @@ Resources:
       CodeUri: nodejs
       Handler: getClientById.handler
       Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref TableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref Table
       Events:
         RootGet:
           Type: HttpApi
@@ -176,7 +176,7 @@ Resources:
       Handler: updateClient.handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref TableName
+            TableName: !Ref Table
       Events:
         RootGet:
           Type: HttpApi
