@@ -8,7 +8,7 @@ export const clientSchema = z.object({
     .min(1, { message: "Client name is required" })
     .max(100),
   email: z.string().email().max(100),
-  phone: z.union([z.string().min(10).max(20), z.literal(""), z.undefined()]),
+  phone: z.union([z.string().min(10).max(30), z.literal(""), z.undefined()]),
   address: z.string().max(255).optional(),
   VATNumber: z.string().max(100).optional(),
   currencyPreference: z.string().optional().default("USD"),
