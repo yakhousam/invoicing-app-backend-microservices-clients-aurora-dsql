@@ -77,22 +77,20 @@ This repository contains a serverless microservice for managing clients. The mic
       ```
 5. start the SAM local api:
       ```sh
+      sam build
       sam local start-api --env-vars env.json --host 0.0.0.0 --port 3003 --debug
       ```
+## Testing
 
+* **Run the tests using Vitest:**
 
-    ## Testing
+  ```sh
+  npm run test
+  ```
+## Deployment
 
-      **Run the tests using Vitest:**
+* **Deploy the application using the AWS SAM CLI:**
 
-      ```sh
-      npm run test
-      ```
-
-      ## Deployment
-
-      **Deploy the application using the AWS SAM CLI:**
-
-      ```sh
-      sam deploy --guided
-      ```
+  ```sh
+  sam deploy --guided
+  ```
