@@ -1,44 +1,44 @@
-import { ddbDocClient, tableName } from '@/db/client'
-import { QueryCommand } from '@aws-sdk/lib-dynamodb'
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import createError from 'http-errors'
+import { ddbDocClient, tableName } from "@/db/client";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import createError from "http-errors";
 
 const getAllClientsController = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
-  const userId = event.requestContext.authorizer?.jwt?.claims?.sub as string
+  const userId = event.requestContext.authorizer?.jwt?.claims?.sub as string;
 
-  let lastEvaluatedKey: Record<string, unknown> | undefined = undefined
-  const clients: Record<string, unknown>[] = []
+  let lastEvaluatedKey: Record<string, unknown> | undefined = undefined;
+  const clients: Record<string, unknown>[] = [];
 
   do {
     const command: QueryCommand = new QueryCommand({
       TableName: tableName,
       ExclusiveStartKey: lastEvaluatedKey,
-      KeyConditionExpression: 'userId = :userId',
+      KeyConditionExpression: "userId = :userId",
       ExpressionAttributeValues: {
-        ':userId': userId
-      }
-    })
-    const data = await ddbDocClient.send(command)
+        ":userId": userId,
+      },
+    });
+    const data = await ddbDocClient.send(command);
     if (data.Items) {
-      clients.push(...data.Items)
+      clients.push(...data.Items);
     }
-    lastEvaluatedKey = data.LastEvaluatedKey
-  } while (lastEvaluatedKey)
+    lastEvaluatedKey = data.LastEvaluatedKey;
+  } while (lastEvaluatedKey);
 
   if (clients.length === 0) {
-    throw new createError.NotFound('No clients found')
+    throw new createError.NotFound("No clients found");
   }
 
   const response = {
     clients,
-    count: clients.length
-  }
+    count: clients.length,
+  };
   return {
     statusCode: 200,
-    body: JSON.stringify(response)
-  }
-}
+    body: JSON.stringify(response),
+  };
+};
 
-export default getAllClientsController
+export default getAllClientsController;

@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker'
-import { Client, CreateClient, UpdateClient } from '../validation'
+import { faker } from "@faker-js/faker";
+import { Client, CreateClient, UpdateClient } from "../validation";
 
 export function generateClients(num: number): Client[] {
   return Array(num)
@@ -15,9 +15,9 @@ export function generateClients(num: number): Client[] {
         currencyPreference: faker.finance.currencyCode(),
         address: faker.location.streetAddress(),
         phone: faker.phone.number(),
-        VATNumber: faker.string.uuid()
-      }
-    })
+        VATNumber: faker.string.uuid(),
+      };
+    });
 }
 
 export function generatePostClient(): CreateClient {
@@ -27,12 +27,12 @@ export function generatePostClient(): CreateClient {
     currencyPreference: faker.finance.currencyCode(),
     address: faker.location.streetAddress(),
     phone: faker.phone.number(),
-    VATNumber: faker.string.uuid()
-  }
+    VATNumber: faker.string.uuid(),
+  };
 }
 
 export function generateUserId(): string {
-  return faker.string.uuid()
+  return faker.string.uuid();
 }
 
 export function generateUpdateClient(): UpdateClient {
@@ -42,10 +42,10 @@ export function generateUpdateClient(): UpdateClient {
     currencyPreference: getValueOrUndefined(faker.finance.currencyCode()),
     address: getValueOrUndefined(faker.location.streetAddress()),
     phone: getValueOrUndefined(faker.phone.number()),
-    VATNumber: getValueOrUndefined(faker.string.uuid())
-  }
+    VATNumber: getValueOrUndefined(faker.string.uuid()),
+  };
 }
 
 function getValueOrUndefined<T>(value: T): T | undefined {
-  return Math.random() > 0.5 ? value : undefined
+  return Math.random() > 0.5 ? value : undefined;
 }
