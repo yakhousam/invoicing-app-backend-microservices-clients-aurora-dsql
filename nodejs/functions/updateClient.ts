@@ -14,8 +14,6 @@ import httpSecurityHeadersMiddleware from "@middy/http-security-headers";
 
 import updateClientController from "@/controllers/updateClientController";
 import authorizeUserMiddleware from "@/custom-middlewares/authorizeUserMiddleware";
-import clientNameDuplicationMiddleware from "@/custom-middlewares/clientNameDuplicationMiddleware";
-import emailDuplicationMiddleware from "@/custom-middlewares/emailDuplicationMiddleware";
 
 const updateClientHandler = async (
   event: APIGatewayProxyEvent,
@@ -36,8 +34,6 @@ export const handler = middy({
   .use(httpSecurityHeadersMiddleware())
   .use(httpContentEncodingMiddleware())
   .use(authorizeUserMiddleware())
-  .use(emailDuplicationMiddleware())
-  .use(clientNameDuplicationMiddleware())
   .use(httpErrorHandlerMiddleware())
   .use(errorLogger())
   .handler(updateClientHandler);

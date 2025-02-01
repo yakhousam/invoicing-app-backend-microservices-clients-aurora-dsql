@@ -1,11 +1,6 @@
-import { ddbDocClient, tableName } from "@/db/client";
-import {
-  createExpressionAttributeValues,
-  createUpdateExpression,
-} from "@/utils";
+import { getClient } from "@/db/client";
+import { createUpdateExpression } from "@/utils";
 import { updateClientSchema } from "@/validation";
-import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
-import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {
   type APIGatewayProxyEvent,
   type APIGatewayProxyResult,
@@ -23,35 +18,22 @@ const updateClientController = async (
     const updates = updateClientSchema.parse(event.body);
 
     const updateExpression = createUpdateExpression(updates);
-    const expressionAttributeValues = createExpressionAttributeValues(updates);
+    const dbClient = await getClient();
 
-    const command = new UpdateCommand({
-      TableName: tableName,
-      Key: {
-        clientId: clientId,
-        userId: userId,
-      },
-      UpdateExpression: updateExpression,
-      ExpressionAttributeValues: expressionAttributeValues,
-      ConditionExpression:
-        "attribute_exists(clientId) AND attribute_exists(userId)",
-      ReturnValues: "ALL_NEW",
-    });
-
-    const result = await ddbDocClient.send(command);
-    console.log("result", result);
+    const result = await dbClient.query(
+      `UPDATE invoicing_app.clients SET ${updateExpression} WHERE "clientId" = $1 AND "userId" = $2 RETURNING *`,
+      [clientId, userId],
+    );
 
     return {
       statusCode: 200,
-      body: JSON.stringify(result.Attributes),
+      body: JSON.stringify(result.rows[0]),
     };
   } catch (error) {
     if (error instanceof ZodError) {
       throw createError.BadRequest(error.message);
     }
-    if (error instanceof ConditionalCheckFailedException) {
-      throw createError.NotFound("Client not found");
-    }
+
     console.error("Error instance:", error);
     throw error;
   }
