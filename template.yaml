@@ -9,10 +9,6 @@ Parameters:
   UserPoolClientId:
     Type: String
     Description: Client ID for user pool
-  TableName:
-    Type: String
-    Default: clients
-    Description: Name of the DynamoDB table
 
 Globals:
   Function:
@@ -23,8 +19,8 @@ Globals:
       - x86_64
     Environment:
       Variables:
-        TABLE_NAME: !Ref TableName
-        ENDPOINT_OVERRIDE: ""
+        DSQL_CLUSTER_URL: ""
+        REGION: !Ref "AWS::Region"
         userId: ""
 
 Resources:
@@ -35,7 +31,7 @@ Resources:
         DefaultAuthorizer: GeneralAuth
         Authorizers:
           GeneralAuth:
-            IdentitySource: "$request.header.Authorization"
+            IdentitySource: $request.header.Authorization
             JwtConfiguration:
               audience:
                 - !Ref UserPoolClientId
@@ -48,62 +44,19 @@ Resources:
           - PATCH
           - DELETE
         AllowOrigins:
-          - "http://localhost:3001"
-          - "https://yakhousam-invoicing-app.netlify.app"
-          - "https://invoicing-app.khoudiryaya.dev"
+          - http://localhost:3001
+          - https://yakhousam-invoicing-app.netlify.app
+          - https://invoicing-app.khoudiryaya.dev
         AllowHeaders:
           - Content-Type
           - Authorization
-
-  Table:
-    Type: AWS::DynamoDB::Table
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    Properties:
-      TableName: !Ref TableName
-      AttributeDefinitions:
-        - AttributeType: S
-          AttributeName: userId
-        - AttributeType: S
-          AttributeName: clientId
-        - AttributeType: S
-          AttributeName: clientName
-        - AttributeType: S
-          AttributeName: email
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-        - AttributeName: clientId
-          KeyType: RANGE
-      LocalSecondaryIndexes:
-        - IndexName: clientNameIndex
-          KeySchema:
-            - AttributeName: userId
-              KeyType: HASH
-            - AttributeName: clientName
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-        - IndexName: emailIndex
-          KeySchema:
-            - AttributeName: userId
-              KeyType: HASH
-            - AttributeName: email
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-
-      BillingMode: PAY_PER_REQUEST
-      DeletionProtectionEnabled: false
 
   postClientFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: nodejs
       Handler: postClient.handler
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref Table
+
       Events:
         RootGet:
           Type: HttpApi
@@ -116,7 +69,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2020"
+        Target: es2020
         Sourcemap: true
         EntryPoints:
           - functions/postClient.ts
@@ -126,9 +79,6 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: getAllClients.handler
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref Table
       Events:
         RootGet:
           Type: HttpApi
@@ -141,7 +91,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2020"
+        Target: es2020
         Sourcemap: true
         EntryPoints:
           - functions/getAllClients.ts
@@ -151,9 +101,6 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: getClientById.handler
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref Table
       Events:
         RootGet:
           Type: HttpApi
@@ -166,7 +113,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2020"
+        Target: es2020
         Sourcemap: true
         EntryPoints:
           - functions/getClientById.ts
@@ -176,9 +123,7 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: updateClient.handler
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref Table
+
       Events:
         RootGet:
           Type: HttpApi
@@ -190,12 +135,12 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2020"
+        Target: es2020
         Sourcemap: true
         EntryPoints:
           - functions/updateClient.ts
 
 Outputs:
   HttpApi:
-    Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
+    Description: API Gateway endpoint URL for Prod stage
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/
