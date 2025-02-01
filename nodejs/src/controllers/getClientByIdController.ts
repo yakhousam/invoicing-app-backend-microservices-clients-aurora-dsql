@@ -1,5 +1,4 @@
-import { ddbDocClient, tableName } from "@/db/client";
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
+import { getClient } from "@/db/client";
 import {
   type APIGatewayProxyEvent,
   type APIGatewayProxyResult,
@@ -17,18 +16,16 @@ const getClientByIdController = async (
     throw new createError.BadRequest("clientId is required");
   }
 
-  const command = new GetCommand({
-    TableName: tableName,
-    Key: {
-      clientId,
-      userId,
-    },
-  });
+  const dbClient = await getClient();
 
-  const data = await ddbDocClient.send(command);
-  const item = data.Item;
+  const result = await dbClient.query(
+    'SELECT * FROM invoicing_app.clients WHERE "clientId" = $1 AND "userId" = $2',
+    [clientId, userId],
+  );
 
-  if (!item) {
+  const client = result.rows?.[0];
+
+  if (!client) {
     throw new createError.NotFound(
       `Client with clientId "${clientId}" not found`,
     );
@@ -36,7 +33,7 @@ const getClientByIdController = async (
 
   return {
     statusCode: 200,
-    body: JSON.stringify(item),
+    body: JSON.stringify(client),
   };
 };
 
