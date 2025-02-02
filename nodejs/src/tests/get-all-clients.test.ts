@@ -2,21 +2,19 @@ import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
 import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { handler as getAllClientsHandler } from "../../functions/getAllClients";
 import { generateClients, generateUserId } from "./generate";
+import { getDatabaseClient } from "@/db/client";
+import { Client as PgClient } from "pg";
 
-vi.mock(import("pg"), async (importOriginal) => {
-  const actual = await importOriginal();
+vi.mock("@/db/client", () => {
   const mClient = {
     connect: vi.fn(),
     query: vi.fn(),
     end: vi.fn(),
   };
   return {
-    ...actual,
-    Client: vi.fn(() => mClient) as unknown as typeof PgClient,
+    getDatabaseClient: vi.fn(() => mClient),
   };
 });
-
-import { Client as PgClient } from "pg";
 
 describe("Test getAllClients", () => {
   let dbClient: PgClient;
@@ -32,8 +30,8 @@ describe("Test getAllClients", () => {
     getRemainingTimeInMillis: false,
   } as unknown as Context;
 
-  beforeEach(() => {
-    dbClient = new PgClient();
+  beforeEach(async () => {
+    dbClient = await getDatabaseClient();
   });
 
   it("should return all clients for the authenticated user", async () => {
