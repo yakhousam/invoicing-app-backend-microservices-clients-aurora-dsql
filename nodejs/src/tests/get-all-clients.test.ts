@@ -1,5 +1,5 @@
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock, afterAll } from "vitest";
 import { handler as getAllClientsHandler } from "../../functions/getAllClients";
 import { generateClients, generateUserId } from "./generate";
 import { Client } from "pg";
@@ -29,6 +29,10 @@ describe("Test getAllClients", () => {
 
   beforeEach(() => {
     dbClient = new Client();
+  });
+  afterAll(() => {
+    dbClient.end();
+    vi.restoreAllMocks();
   });
 
   it("should return all clients for the authenticated user", async () => {

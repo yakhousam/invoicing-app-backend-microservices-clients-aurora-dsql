@@ -1,5 +1,5 @@
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock, afterAll } from "vitest";
 import { type ZodIssue } from "zod";
 import { handler as updateClientHandler } from "../../functions/updateClient";
 import { generateUpdateClient, generateUserId } from "./generate";
@@ -31,6 +31,10 @@ describe("Test updateClient", () => {
 
   beforeEach(() => {
     dbClient = new PgClient();
+  });
+  afterAll(() => {
+    dbClient.end();
+    vi.restoreAllMocks();
   });
 
   it("should update a client", async () => {
