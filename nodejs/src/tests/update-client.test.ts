@@ -1,3 +1,4 @@
+import { getDatabaseClient } from "@/db/client";
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
 import { Client as PgClient } from "pg";
 import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -5,20 +6,18 @@ import { type ZodIssue } from "zod";
 import { handler as updateClientHandler } from "../../functions/updateClient";
 import { generateUpdateClient, generateUserId } from "./generate";
 
-vi.mock(import("pg"), async (importOriginal) => {
-  const actual = await importOriginal();
+vi.mock("@/db/client", () => {
   const mClient = {
     connect: vi.fn(),
     query: vi.fn(),
     end: vi.fn(),
   };
   return {
-    ...actual,
-    Client: vi.fn(() => mClient) as unknown as typeof PgClient,
+    getDatabaseClient: vi.fn(() => mClient),
   };
 });
 
-describe.skip("Test updateClient", () => {
+describe("Test updateClient", () => {
   let dbClient: PgClient;
 
   const event = {
@@ -33,8 +32,8 @@ describe.skip("Test updateClient", () => {
     getRemainingTimeInMillis: false,
   } as unknown as Context;
 
-  beforeEach(() => {
-    dbClient = new PgClient();
+  beforeEach(async () => {
+    dbClient = await getDatabaseClient();
   });
 
   it("should update a client", async () => {
