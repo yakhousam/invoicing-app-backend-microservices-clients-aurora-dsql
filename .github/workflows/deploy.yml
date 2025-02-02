@@ -26,7 +26,7 @@ jobs:
         working-directory: nodejs
 
       - name: Run tests
-        run: npm test
+        run: npm run text:ci
         working-directory: nodejs
 
       # - name: Set up AWS CLI

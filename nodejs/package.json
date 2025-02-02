@@ -4,7 +4,8 @@
   "scripts": {
     "compile": "tsc",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:ci": "vitest --silent"
   },
   "keywords": [],
   "author": "",
