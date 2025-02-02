@@ -36,6 +36,23 @@ export const updateClientSchema = clientSchema
   })
   .partial();
 
+export const clientQuerySchema = z.object({
+  limit: z
+    .string()
+    .optional()
+    .default("10")
+    .refine((val) => /^\d+$/.test(val) && parseInt(val, 10) > 0, {
+      message: "Limit must be a positive integer",
+    }),
+  offset: z
+    .string()
+    .optional()
+    .default("0")
+    .refine((val) => /^\d+$/.test(val) && parseInt(val, 10) >= 0, {
+      message: "Offset must be a non-negative integer",
+    }),
+});
+
 export type Client = z.infer<typeof clientSchema>;
 
 export type CreateClient = z.infer<typeof createClientSchema>;

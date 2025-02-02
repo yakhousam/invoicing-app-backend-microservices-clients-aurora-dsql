@@ -17,7 +17,7 @@ async function getToken() {
 let client: Client | null = null;
 let current = 0;
 
-export async function getClient() {
+export async function getDatabaseClient() {
   const diff = Date.now() - current;
   if (client && diff < 850000) {
     return client;
