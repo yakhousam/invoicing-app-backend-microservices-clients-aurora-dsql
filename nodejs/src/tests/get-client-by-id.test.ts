@@ -1,16 +1,18 @@
-import { type Context, type APIGatewayProxyEvent } from "aws-lambda";
-import { beforeEach, describe, expect, it, vi, Mock, afterAll } from "vitest";
+import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
+import { Client } from "pg";
+import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { handler as getClientByIdHandler } from "../../functions/getClientById";
 import { generateClients, generateUserId } from "./generate";
-import { Client } from "pg";
 
-vi.mock("pg", () => {
-  const mClient = {
+vi.mock(import("pg"), async (importOriginal) => {
+  const mod = await importOriginal(); // type is inferred
+  return {
+    ...mod,
+    // replace some exports
     connect: vi.fn(),
     query: vi.fn(),
     end: vi.fn(),
   };
-  return { Client: vi.fn(() => mClient) };
 });
 
 describe("Test getClientById", () => {
@@ -38,10 +40,6 @@ describe("Test getClientById", () => {
 
   beforeEach(() => {
     dbClient = new Client();
-  });
-  afterAll(() => {
-    dbClient.end();
-    vi.restoreAllMocks();
   });
 
   it("should return a client by id", async () => {

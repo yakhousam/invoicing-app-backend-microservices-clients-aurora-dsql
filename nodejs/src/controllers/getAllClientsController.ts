@@ -26,6 +26,8 @@ const getAllClientsController = async (
       [userId],
     );
 
+    console.log("countResult", countResult);
+
     const totalCount = parseInt(countResult.rows[0].count, 10);
 
     const clientData = await databaseClient.query(

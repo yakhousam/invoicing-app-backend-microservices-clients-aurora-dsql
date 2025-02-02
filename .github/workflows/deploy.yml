@@ -29,25 +29,25 @@ jobs:
         run: npm test
         working-directory: nodejs
 
-      - name: Set up AWS CLI
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      # - name: Set up AWS CLI
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Install AWS SAM CLI
-        run: pip install aws-sam-cli
+      # - name: Install AWS SAM CLI
+      #   run: pip install aws-sam-cli
 
-      - name: Build SAM application
-        run: sam build
+      # - name: Build SAM application
+      #   run: sam build
 
-      - name: Deploy SAM application
-        run: |
-          sam deploy \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --resolve-s3 \
-            --stack-name invoicing-app-clients-microservice-aurora-dsql \
-            --capabilities CAPABILITY_IAM \
-            --parameter-overrides UserPoolId=${{ secrets.USER_POOL_ID }} UserPoolClientId=${{ secrets.USER_POOL_CLIENT_ID }} DsqlClusterUrl=${{ secrets.DSQL_CLUSTER_URL }} \
+      # - name: Deploy SAM application
+      #   run: |
+      #     sam deploy \
+      #       --no-confirm-changeset \
+      #       --no-fail-on-empty-changeset \
+      #       --resolve-s3 \
+      #       --stack-name invoicing-app-clients-microservice-aurora-dsql \
+      #       --capabilities CAPABILITY_IAM \
+      #       --parameter-overrides UserPoolId=${{ secrets.USER_POOL_ID }} UserPoolClientId=${{ secrets.USER_POOL_CLIENT_ID }} DsqlClusterUrl=${{ secrets.DSQL_CLUSTER_URL }} \

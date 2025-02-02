@@ -1,18 +1,20 @@
 import { type Client } from "@/validation";
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { beforeEach, describe, expect, it, vi, Mock, afterAll } from "vitest";
+import { Client as PgClient } from "pg";
+import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { type ZodIssue } from "zod";
 import { handler as postClientHandler } from "../../functions/postClient";
 import { generatePostClient, generateUserId } from "./generate";
-import { Client as PgClient } from "pg";
 
-vi.mock("pg", () => {
-  const mClient = {
+vi.mock(import("pg"), async (importOriginal) => {
+  const mod = await importOriginal(); // type is inferred
+  return {
+    ...mod,
+    // replace some exports
     connect: vi.fn(),
     query: vi.fn(),
     end: vi.fn(),
   };
-  return { Client: vi.fn(() => mClient) };
 });
 
 describe("Test postClient", () => {
@@ -32,10 +34,6 @@ describe("Test postClient", () => {
 
   beforeEach(() => {
     dbClient = new PgClient();
-  });
-  afterAll(() => {
-    dbClient.end();
-    vi.restoreAllMocks();
   });
 
   it("should post a client", async () => {
