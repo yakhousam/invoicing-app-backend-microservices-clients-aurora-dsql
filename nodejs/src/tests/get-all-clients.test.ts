@@ -1,5 +1,4 @@
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { Client as PgClient } from "pg";
 import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { handler as getAllClientsHandler } from "../../functions/getAllClients";
 import { generateClients, generateUserId } from "./generate";
@@ -16,6 +15,9 @@ vi.mock(import("pg"), async (importOriginal) => {
     Client: vi.fn(() => mClient) as unknown as typeof PgClient,
   };
 });
+
+import { Client as PgClient } from "pg";
+
 describe("Test getAllClients", () => {
   let dbClient: PgClient;
 

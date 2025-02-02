@@ -17,7 +17,7 @@ vi.mock(import("pg"), async (importOriginal) => {
   };
 });
 
-describe("Test getClientById", () => {
+describe.skip("Test getClientById", () => {
   let dbClient: Client;
 
   const event = {

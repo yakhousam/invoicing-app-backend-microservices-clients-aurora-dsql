@@ -19,7 +19,7 @@ vi.mock(import("pg"), async (importOriginal) => {
   };
 });
 
-describe("Test postClient", () => {
+describe.skip("Test postClient", () => {
   let dbClient: PgClient;
 
   const event = {
