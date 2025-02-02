@@ -7,13 +7,15 @@ import { handler as postClientHandler } from "../../functions/postClient";
 import { generatePostClient, generateUserId } from "./generate";
 
 vi.mock(import("pg"), async (importOriginal) => {
-  const mod = await importOriginal(); // type is inferred
-  return {
-    ...mod,
-    // replace some exports
+  const actual = await importOriginal();
+  const mClient = {
     connect: vi.fn(),
     query: vi.fn(),
     end: vi.fn(),
+  };
+  return {
+    ...actual,
+    Client: vi.fn(() => mClient) as unknown as typeof PgClient,
   };
 });
 
