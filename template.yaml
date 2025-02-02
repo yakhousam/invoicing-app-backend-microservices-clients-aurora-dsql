@@ -22,6 +22,7 @@ Globals:
         DSQL_CLUSTER_URL: ""
         REGION: !Ref "AWS::Region"
         userId: ""
+        NODE_ENV: "production"
 
 Resources:
   HttpApi:

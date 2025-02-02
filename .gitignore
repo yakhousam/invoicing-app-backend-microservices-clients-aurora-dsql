@@ -391,4 +391,4 @@ $RECYCLE.BIN/
 
 api.rest
 samconfig.toml
-env-aurora.json
+env.json
