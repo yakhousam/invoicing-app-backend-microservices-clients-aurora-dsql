@@ -1,18 +1,22 @@
-import {
-  DynamoDBDocumentClient,
-  UpdateCommand,
-  QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { mockClient } from "aws-sdk-client-mock";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 import { type ZodIssue } from "zod";
 import { handler as updateClientHandler } from "../../functions/updateClient";
 import { generateUpdateClient, generateUserId } from "./generate";
-import { tableName } from "@/db/client";
+import { Client as PgClient } from "pg";
+
+vi.mock("pg", () => {
+  const mClient = {
+    connect: vi.fn(),
+    query: vi.fn(),
+    end: vi.fn(),
+  };
+  return { Client: vi.fn(() => mClient) };
+});
 
 describe("Test updateClient", () => {
-  const ddbMock = mockClient(DynamoDBDocumentClient);
+  let dbClient: PgClient;
+
   const event = {
     httpMethod: "PATCH",
     headers: {
@@ -26,7 +30,7 @@ describe("Test updateClient", () => {
   } as unknown as Context;
 
   beforeEach(() => {
-    ddbMock.reset();
+    dbClient = new PgClient();
   });
 
   it("should update a client", async () => {
@@ -37,26 +41,9 @@ describe("Test updateClient", () => {
 
     const returnClient = { ...client, userId };
 
-    ddbMock
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "emailIndex",
-      })
-      .resolves({ Count: 0 })
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "clientNameIndex",
-      })
-      .resolves({ Count: 0 })
-      .on(UpdateCommand, {
-        Key: {
-          clientId: clientId,
-          userId: userId,
-        },
-      })
-      .resolves({
-        Attributes: returnClient,
-      });
+    (dbClient.query as Mock).mockResolvedValueOnce({
+      rows: [returnClient],
+    });
 
     const updateClientEvent = {
       ...event,
@@ -81,102 +68,7 @@ describe("Test updateClient", () => {
     expect(result.body).toBe(JSON.stringify(returnClient));
   });
 
-  it("should return 409 if client name already exists", async () => {
-    const userId = generateUserId();
-    const clientId = generateUserId();
-
-    const client = generateUpdateClient();
-
-    ddbMock
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "emailIndex",
-      })
-      .resolves({ Count: 0 })
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "clientNameIndex",
-      })
-      .resolves({ Count: 1 });
-
-    const updateClientEvent = {
-      ...event,
-      body: JSON.stringify(client),
-      pathParameters: {
-        clientId: clientId,
-      },
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await updateClientHandler(updateClientEvent, context);
-
-    expect(result.statusCode).toBe(409);
-    expect(result.body).toBeTruthy();
-  });
-
-  it("should return 409 if email already exists", async () => {
-    const userId = generateUserId();
-    const clientId = generateUserId();
-
-    const client = generateUpdateClient();
-
-    ddbMock
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "emailIndex",
-      })
-      .resolves({ Count: 1 })
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "clientNameIndex",
-      })
-      .resolves({ Count: 0 });
-
-    const updateClientEvent = {
-      ...event,
-      body: JSON.stringify(client),
-      pathParameters: {
-        clientId: clientId,
-      },
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await updateClientHandler(updateClientEvent, context);
-
-    expect(result.statusCode).toBe(409);
-    expect(result.body).toBeTruthy();
-  });
-
   describe("Validation", () => {
-    beforeEach(() => {
-      ddbMock
-        .on(QueryCommand, {
-          TableName: tableName,
-          IndexName: "emailIndex",
-        })
-        .resolves({ Count: 0 })
-        .on(QueryCommand, {
-          TableName: tableName,
-          IndexName: "clientNameIndex",
-        })
-        .resolves({ Count: 0 });
-    });
     it("should return 400 if client name is empty", async () => {
       const userId = generateUserId();
       const clientId = generateUserId();

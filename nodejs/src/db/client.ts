@@ -38,5 +38,3 @@ export async function getDatabaseClient() {
   await client.connect();
   return client;
 }
-export const ddbDocClient = {};
-export const tableName = "";

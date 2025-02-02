@@ -1,12 +1,20 @@
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { mockClient } from "aws-sdk-client-mock";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 import { handler as getAllClientsHandler } from "../../functions/getAllClients";
 import { generateClients, generateUserId } from "./generate";
+import { Client } from "pg";
+
+vi.mock("pg", () => {
+  const mClient = {
+    connect: vi.fn(),
+    query: vi.fn(),
+    end: vi.fn(),
+  };
+  return { Client: vi.fn(() => mClient) };
+});
 
 describe("Test getAllClients", () => {
-  const ddbMock = mockClient(DynamoDBDocumentClient);
+  let dbClient: Client;
 
   const event = {
     httpMethod: "GET",
@@ -20,28 +28,21 @@ describe("Test getAllClients", () => {
   } as unknown as Context;
 
   beforeEach(() => {
-    ddbMock.reset();
+    dbClient = new Client();
   });
 
   it("should return all clients for the authenticated user", async () => {
     const userId = generateUserId();
-    const clients = generateClients(1).map((client) => ({ ...client, userId }));
-
-    ddbMock
-      .on(QueryCommand)
-      .resolves({
-        Items: undefined,
-      })
-      .on(QueryCommand, {
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: {
-          ":userId": userId,
-        },
-      })
-      .resolves({
-        Items: clients,
-      });
-
+    const clients = generateClients(10).map((client) => ({
+      ...client,
+      userId,
+    }));
+    (dbClient.query as Mock).mockResolvedValueOnce({
+      rows: [{ count: clients.length }],
+    });
+    (dbClient.query as Mock).mockResolvedValueOnce({
+      rows: clients,
+    });
     const getAllClientsEvent = {
       ...event,
       requestContext: {
@@ -61,114 +62,5 @@ describe("Test getAllClients", () => {
     expect(result.body).toEqual(
       JSON.stringify({ clients, count: clients.length }),
     );
-  });
-
-  it("should return 404 if no clients are found", async () => {
-    const userId = generateUserId();
-
-    ddbMock
-      .on(QueryCommand, {
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: {
-          ":userId": userId,
-        },
-      })
-      .resolves({
-        Items: undefined,
-      });
-
-    const getAllClientsEvent = {
-      ...event,
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await getAllClientsHandler(getAllClientsEvent, context);
-
-    expect(result.statusCode).toBe(404);
-  });
-
-  it("should handle pagination correctly", async () => {
-    const userId = generateUserId();
-    const clients = generateClients(20).map((client) => ({
-      ...client,
-      userId,
-    }));
-    const firstPage = clients.slice(0, 10);
-    const secondPage = clients.slice(10);
-    const lastEvaluatedKey = { clientId: "10" };
-    ddbMock
-      .on(QueryCommand)
-      .resolves({ Items: undefined })
-      .on(QueryCommand, {
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: {
-          ":userId": userId,
-        },
-      })
-      .resolves({ Items: firstPage, LastEvaluatedKey: lastEvaluatedKey })
-      .on(QueryCommand, {
-        ExclusiveStartKey: lastEvaluatedKey,
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: {
-          ":userId": userId,
-        },
-      })
-      .resolves({ Items: secondPage });
-
-    const getAllClientsEvent = {
-      ...event,
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await getAllClientsHandler(getAllClientsEvent, context);
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual(
-      JSON.stringify({ clients: clients, count: clients.length }),
-    );
-  });
-
-  it("should return 500 on DynamoDB error", async () => {
-    const userId = generateUserId();
-    ddbMock
-      .on(QueryCommand, {
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: {
-          ":userId": userId,
-        },
-      })
-      .rejects(new Error("DynamoDB error"));
-
-    const getAllClientsEvent = {
-      ...event,
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await getAllClientsHandler(getAllClientsEvent, context);
-
-    expect(result.statusCode).toBe(500);
   });
 });

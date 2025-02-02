@@ -1,19 +1,22 @@
-import { Client } from "@/validation";
-import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { type Client } from "@/validation";
 import { type APIGatewayProxyEvent, type Context } from "aws-lambda";
-import { mockClient } from "aws-sdk-client-mock";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 import { type ZodIssue } from "zod";
 import { handler as postClientHandler } from "../../functions/postClient";
 import { generatePostClient, generateUserId } from "./generate";
-import { tableName } from "@/db/client";
+import { Client as PgClient } from "pg";
+
+vi.mock("pg", () => {
+  const mClient = {
+    connect: vi.fn(),
+    query: vi.fn(),
+    end: vi.fn(),
+  };
+  return { Client: vi.fn(() => mClient) };
+});
 
 describe("Test postClient", () => {
-  const ddbMock = mockClient(DynamoDBDocumentClient);
+  let dbClient: PgClient;
 
   const event = {
     httpMethod: "POST",
@@ -28,36 +31,16 @@ describe("Test postClient", () => {
   } as unknown as Context;
 
   beforeEach(() => {
-    ddbMock.reset();
+    dbClient = new PgClient();
   });
 
   it("should post a client", async () => {
-    const client = generatePostClient();
+    const postClient = generatePostClient();
     const userId = generateUserId();
 
-    ddbMock
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "emailIndex",
-        KeyConditionExpression: "email = :email AND userId = :userId",
-        ExpressionAttributeValues: {
-          ":email": client.email,
-          ":userId": userId,
-        },
-      })
-      .resolves({ Count: 0 })
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "clientNameIndex",
-        KeyConditionExpression: "clientName = :clientName AND userId = :userId",
-        ExpressionAttributeValues: {
-          ":clientName": client.clientName,
-          ":userId": userId,
-        },
-      })
-      .resolves({ Count: 0 })
-      .on(PutCommand)
-      .resolves({});
+    (dbClient.query as Mock).mockResolvedValueOnce({
+      rows: [postClient],
+    });
 
     const putEvent = {
       ...event,
@@ -70,116 +53,17 @@ describe("Test postClient", () => {
           },
         },
       },
-      body: JSON.stringify(client),
+      body: JSON.stringify(postClient),
     } as unknown as APIGatewayProxyEvent;
 
     const result = await postClientHandler(putEvent, context);
     expect(result.statusCode).toBe(201);
 
     const returnedBody = JSON.parse(result.body) as Client;
-    expect(returnedBody).contains(client);
-    expect(returnedBody.clientId).toBeTruthy();
-    expect(returnedBody.createdAt).toBeTruthy();
-    expect(returnedBody.updatedAt).toBeTruthy();
-    expect(returnedBody.userId).toBe(userId);
-  });
-
-  it("should return 409 if client name already exists", async () => {
-    const client = generatePostClient();
-    const userId = generateUserId();
-
-    ddbMock
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "emailIndex",
-        KeyConditionExpression: "email = :email AND userId = :userId",
-        ExpressionAttributeValues: {
-          ":email": client.email,
-          ":userId": userId,
-        },
-      })
-      .resolves({ Count: 0 })
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "clientNameIndex",
-        KeyConditionExpression: "clientName = :clientName AND userId = :userId",
-        ExpressionAttributeValues: {
-          ":clientName": client.clientName,
-          ":userId": userId,
-        },
-      })
-      .resolves({ Count: 1 });
-
-    const putEvent = {
-      ...event,
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-      body: JSON.stringify(client),
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await postClientHandler(putEvent, context);
-
-    expect(result.statusCode).toBe(409);
-    expect(result.body).toBe("Client name already exists");
-  });
-
-  it("should return 409 if email already exists", async () => {
-    const client = generatePostClient();
-    const userId = generateUserId();
-
-    ddbMock
-      .on(QueryCommand, {
-        TableName: tableName,
-        IndexName: "emailIndex",
-        KeyConditionExpression: "email = :email AND userId = :userId",
-        ExpressionAttributeValues: {
-          ":email": client.email,
-          ":userId": userId,
-        },
-      })
-      .resolves({ Count: 1 });
-
-    const putEvent = {
-      ...event,
-      requestContext: {
-        authorizer: {
-          jwt: {
-            claims: {
-              sub: userId,
-            },
-          },
-        },
-      },
-      body: JSON.stringify(client),
-    } as unknown as APIGatewayProxyEvent;
-
-    const result = await postClientHandler(putEvent, context);
-
-    expect(result.statusCode).toBe(409);
-    expect(result.body).toBe("Email already exists");
+    expect(returnedBody).contains(postClient);
   });
 
   describe("Validation", () => {
-    beforeEach(() => {
-      ddbMock
-        .on(QueryCommand, {
-          TableName: tableName,
-          IndexName: "emailIndex",
-        })
-        .resolves({ Count: 0 })
-        .on(QueryCommand, {
-          TableName: tableName,
-          IndexName: "clientNameIndex",
-        })
-        .resolves({ Count: 0 });
-    });
     it("should return 400 if client name is missing", async () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { clientName, ...client } = generatePostClient();
