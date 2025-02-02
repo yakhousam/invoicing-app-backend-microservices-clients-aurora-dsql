@@ -1,5 +1,5 @@
-import { getClient } from "@/db/client";
-import { createUpdateExpression } from "@/utils";
+import { getDatabaseClient } from "@/db/client";
+import { createUpdateExpression, getUserId } from "@/utils";
 import { updateClientSchema } from "@/validation";
 import {
   type APIGatewayProxyEvent,
@@ -12,13 +12,17 @@ const updateClientController = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const userId = event.requestContext.authorizer?.jwt.claims.sub as string;
+    const userId = getUserId(event);
+
+    if (!userId) {
+      throw new createError.Unauthorized("Unauthorized");
+    }
     const clientId = event.pathParameters?.clientId as string;
 
     const updates = updateClientSchema.parse(event.body);
 
     const updateExpression = createUpdateExpression(updates);
-    const dbClient = await getClient();
+    const dbClient = await getDatabaseClient();
 
     const result = await dbClient.query(
       `UPDATE invoicing_app.clients SET ${updateExpression} WHERE "clientId" = $1 AND "userId" = $2 RETURNING *`,

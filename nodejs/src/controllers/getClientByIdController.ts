@@ -1,4 +1,5 @@
-import { getClient } from "@/db/client";
+import { getDatabaseClient } from "@/db/client";
+import { getUserId } from "@/utils";
 import {
   type APIGatewayProxyEvent,
   type APIGatewayProxyResult,
@@ -8,7 +9,11 @@ import createError from "http-errors";
 const getClientByIdController = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
-  const userId = event.requestContext.authorizer?.jwt?.claims?.sub as string;
+  const userId = getUserId(event);
+
+  if (!userId) {
+    throw new createError.Unauthorized("Unauthorized");
+  }
 
   const clientId = event.pathParameters?.clientId;
 
@@ -16,7 +21,7 @@ const getClientByIdController = async (
     throw new createError.BadRequest("clientId is required");
   }
 
-  const dbClient = await getClient();
+  const dbClient = await getDatabaseClient();
 
   const result = await dbClient.query(
     'SELECT * FROM invoicing_app.clients WHERE "clientId" = $1 AND "userId" = $2',
