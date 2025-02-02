@@ -11,8 +11,6 @@ import httpEventNormalizerMiddleware from "@middy/http-event-normalizer";
 import httpHeaderNormalizerMiddleware from "@middy/http-header-normalizer";
 import httpSecurityHeadersMiddleware from "@middy/http-security-headers";
 
-import authorizeUserMiddleware from "@/custom-middlewares/authorizeUserMiddleware";
-
 import getAllClientsController from "@/controllers/getAllClientsController";
 
 const getAllClientsHandler = async (
@@ -33,6 +31,5 @@ export const handler = middy({
   .use(httpSecurityHeadersMiddleware())
   .use(httpContentEncodingMiddleware())
   .use(httpErrorHandlerMiddleware())
-  .use(authorizeUserMiddleware())
   .use(errorLogger())
   .handler(getAllClientsHandler);

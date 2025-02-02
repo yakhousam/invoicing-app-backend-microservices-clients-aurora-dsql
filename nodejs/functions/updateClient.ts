@@ -13,7 +13,6 @@ import httpJsonBodyParserMiddleware from "@middy/http-json-body-parser";
 import httpSecurityHeadersMiddleware from "@middy/http-security-headers";
 
 import updateClientController from "@/controllers/updateClientController";
-import authorizeUserMiddleware from "@/custom-middlewares/authorizeUserMiddleware";
 
 const updateClientHandler = async (
   event: APIGatewayProxyEvent,
@@ -33,7 +32,6 @@ export const handler = middy({
   .use(httpJsonBodyParserMiddleware())
   .use(httpSecurityHeadersMiddleware())
   .use(httpContentEncodingMiddleware())
-  .use(authorizeUserMiddleware())
   .use(httpErrorHandlerMiddleware())
   .use(errorLogger())
   .handler(updateClientHandler);
