@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: clients-microservice
+Description: clients-microservice-aurora-dsql
 
 Parameters:
   UserPoolId:
@@ -9,6 +9,9 @@ Parameters:
   UserPoolClientId:
     Type: String
     Description: Client ID for user pool
+  DsqlClusterUrl:
+    Type: String
+    Description: URL for DSQL cluster
 
 Globals:
   Function:
@@ -19,7 +22,7 @@ Globals:
       - x86_64
     Environment:
       Variables:
-        DSQL_CLUSTER_URL: ""
+        DSQL_CLUSTER_URL: !Ref DsqlClusterUrl
         REGION: !Ref "AWS::Region"
         userId: ""
         NODE_ENV: "production"
@@ -46,8 +49,6 @@ Resources:
           - DELETE
         AllowOrigins:
           - http://localhost:3001
-          - https://yakhousam-invoicing-app.netlify.app
-          - https://invoicing-app.khoudiryaya.dev
         AllowHeaders:
           - Content-Type
           - Authorization
