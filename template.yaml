@@ -12,6 +12,9 @@ Parameters:
   DsqlClusterUrl:
     Type: String
     Description: URL for DSQL cluster
+  DsqlClusterArn:
+    Type: String
+    Description: ARN for DSQL cluster
 
 Globals:
   Function:
@@ -58,7 +61,13 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: postClient.handler
-
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "dsql:DbConnectAdmin"
+              Resource: !Ref DsqlClusterArn
       Events:
         RootGet:
           Type: HttpApi
@@ -81,6 +90,13 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: getAllClients.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "dsql:DbConnectAdmin"
+              Resource: !Ref DsqlClusterArn
       Events:
         RootGet:
           Type: HttpApi
@@ -103,6 +119,13 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: getClientById.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "dsql:DbConnectAdmin"
+              Resource: !Ref DsqlClusterArn
       Events:
         RootGet:
           Type: HttpApi
@@ -125,7 +148,13 @@ Resources:
     Properties:
       CodeUri: nodejs
       Handler: updateClient.handler
-
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "dsql:DbConnectAdmin"
+              Resource: !Ref DsqlClusterArn
       Events:
         RootGet:
           Type: HttpApi
